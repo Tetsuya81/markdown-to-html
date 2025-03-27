@@ -1,7 +1,7 @@
 # CLAUDE.md - Development Guidelines
 
 ## Project Overview
-Simple GitHub-styled Markdown to HTML converter with browser-side rendering using marked.js.
+Simple GitHub-styled Markdown to HTML converter with browser-side rendering using convert-md-html.js.
 
 ## Commands
 - **Run locally**: Open index.html in any browser
@@ -20,7 +20,7 @@ Simple GitHub-styled Markdown to HTML converter with browser-side rendering usin
   - Descriptive variable names, camelCase convention
 - **Error Handling**: Use try/catch blocks around file operations
 - **Responsive Design**: Mobile-first approach with media queries
-- **Imports**: Prefer CDN links for dependencies (marked.js, GitHub markdown CSS)
+- **Imports**: Prefer CDN links for dependencies (convert-md-html.js, GitHub markdown CSS)
 - **Documentation**: Add comments for complex functions, document parameters
 
 ## Architecture

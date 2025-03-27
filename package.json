@@ -1,0 +1,13 @@
+{
+  "name": "markdown-to-html",
+  "version": "1.0.0",
+  "description": "Simple GitHub-styled Markdown to HTML converter with browser-side rendering",
+  "main": "index.html",
+  "scripts": {
+    "lint": "eslint index.html convert-md-html.js"
+  },
+  "devDependencies": {
+    "eslint": "^9.23.0",
+    "eslint-plugin-html": "^8.1.2"
+  }
+}

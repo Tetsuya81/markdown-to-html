@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Markdown Viewer</title>
+    
+    <!-- GitHub Markdown CSS from CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.4.0/github-markdown.min.css">
+    
+    <!-- Marked.js for Markdown conversion -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f6f8fa;
+            color: #24292e;
+        }
+        
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+        }
+        
+        /* Menu Button */
+        .menu-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #0366d6;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+        
+        .menu-button:hover {
+            background-color: #0258ba;
+        }
+        
+        .menu-button .bar,
+        .menu-button .bar::before,
+        .menu-button .bar::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 2px;
+    background-color: white;
+    transition: all 0.3s;
+    left: 50%;
+    transform: translateX(-50%);
+        }
+
+        .menu-button .bar {
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .menu-button .bar::before {
+            top: -6px;
+        }
+
+        .menu-button .bar::after {
+            top: 6px;
+        }
+        
+        /* Menu Panel */
+        .menu-panel {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100%;
+            background-color: #ffffff;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            z-index: 900;
+            transition: right 0.3s;
+            padding: 70px 20px 20px;
+            box-sizing: border-box;
+        }
+        
+        .menu-panel.active {
+            right: 0;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #e1e4e8;
+            background-color: #fafbfc;
+            color: #24292e;
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            background-color: #f3f4f6;
+            border-color: #d1d5da;
+        }
+        
+        .btn-primary {
+            background-color: #0366d6;
+            color: white;
+            border-color: #0366d6;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0258ba;
+            border-color: #0258ba;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Modal Editor */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-container {
+            width: 90%;
+            max-width: 900px;
+            background-color: white;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+        
+        .modal-header {
+            padding: 16px;
+            border-bottom: 1px solid #e1e4e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: #586069;
+        }
+        
+        .modal-body {
+            padding: 0;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        
+        .modal-footer {
+            padding: 16px;
+            border-top: 1px solid #e1e4e8;
+            text-align: right;
+        }
+        
+        #mdEditor {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+            max-height: calc(90vh - 130px);
+            padding: 16px;
+            border: none;
+            box-sizing: border-box;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: none;
+        }
+        
+        /* Print styles - prevent page breaks */
+        @media print {
+            body, html, .container, .markdown-body {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+            
+            /* This is the key property to prevent page breaks */
+            .markdown-body * {
+                page-break-inside: avoid !important;
+            }
+            
+            /* Hide menu and controls when printing */
+            .menu-button, .menu-panel, .modal-overlay {
+                display: none !important;
+            }
+            
+            /* Ensure full size content when printing */
+            .markdown-body {
+                max-width: 100% !important;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .markdown-body {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Button -->
+    <button class="menu-button" id="menuButton">
+        <div class="bar"></div>
+    </button>
+    
+    <!-- Menu Panel -->
+    <div class="menu-panel" id="menuPanel">
+        <input type="file" id="mdFile" class="file-input" accept=".md, .markdown, .txt">
+        <button id="uploadBtn" class="btn btn-primary">マークダウンファイルを選択</button>
+        <button id="editBtn" class="btn">エディターで編集</button>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <div id="preview">
+            <article class="markdown-body">
+                <h1>GitHub Markdown Viewer</h1>
+                <p>マークダウンファイルをアップロードして、GitHub風のHTMLに変換します。</p>
+                <p>右上のメニューボタンをクリックし、「マークダウンファイルを選択」ボタンをクリックしてください。</p>
+            </article>
+        </div>
+    </div>
+    
+    <!-- Modal Editor -->
+    <div class="modal-overlay" id="editorModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Markdownエディター</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="mdEditor" placeholder="ここにマークダウンを入力してください..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="updateBtn" class="btn btn-primary">変更を適用</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const mdFile = document.getElementById('mdFile');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const editBtn = document.getElementById('editBtn');
+            const menuButton = document.getElementById('menuButton');
+            const menuPanel = document.getElementById('menuPanel');
+            const editorModal = document.getElementById('editorModal');
+            const closeModal = document.getElementById('closeModal');
+            const mdEditor = document.getElementById('mdEditor');
+            const updateBtn = document.getElementById('updateBtn');
+            const preview = document.getElementById('preview');
+            
+            // Set up marked options
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                headerIds: true,
+                headerPrefix: 'markdown-header-'
+            });
+            
+            // Menu toggle
+            menuButton.addEventListener('click', function() {
+                this.classList.toggle('active');
+                menuPanel.classList.toggle('active');
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!menuButton.contains(e.target) && !menuPanel.contains(e.target)) {
+                    menuButton.classList.remove('active');
+                    menuPanel.classList.remove('active');
+                }
+            });
+            
+            // Handle file upload button
+            uploadBtn.addEventListener('click', function() {
+                mdFile.click();
+            });
+            
+            // Handle file selection
+            mdFile.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    renderMarkdown(content);
+                    mdEditor.value = content;
+                    editBtn.classList.remove('hidden');
+                    
+                    // Close menu after file upload
+                    menuButton.classList.remove('active');
+                    menuPanel.classList.remove('active');
+                };
+                reader.readAsText(file);
+            });
+            
+            // Open modal editor
+            editBtn.addEventListener('click', function() {
+                editorModal.classList.add('active');
+                
+                // Close menu when opening editor
+                menuButton.classList.remove('active');
+                menuPanel.classList.remove('active');
+            });
+            
+            // Close modal editor
+            closeModal.addEventListener('click', function() {
+                editorModal.classList.remove('active');
+            });
+            
+            // Close modal when clicking outside
+            editorModal.addEventListener('click', function(e) {
+                if (e.target === editorModal) {
+                    editorModal.classList.remove('active');
+                }
+            });
+            
+            // Update preview from editor
+            updateBtn.addEventListener('click', function() {
+                const content = mdEditor.value;
+                renderMarkdown(content);
+                editorModal.classList.remove('active');
+            });
+            
+            // Render markdown to HTML
+            function renderMarkdown(markdown) {
+                const html = marked.parse(markdown);
+                preview.innerHTML = `<article class="markdown-body">${html}</article>`;
+            }
+            
+            // Enable drag and drop
+            document.body.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                document.body.style.backgroundColor = '#eaf2f8';
+            });
+            
+            document.body.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                document.body.style.backgroundColor = '#f6f8fa';
+            });
+            
+            document.body.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                document.body.style.backgroundColor = '#f6f8fa';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.name.endsWith('.md') || file.name.endsWith('.markdown') || file.name.endsWith('.txt')) {
+                        mdFile.files = files;
+                        const event = new Event('change');
+                        mdFile.dispatchEvent(event);
+                    }
+                }
+            });
+            
+            // Hide edit button initially
+            // editBtn.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>

@@ -27,6 +27,10 @@ https://tetsuya81.github.io/markdown-to-html/index.html
 
 - **Run locally (browser only)**: Open index.html in any browser
 - **Run with Go server**: Run `go run server.go` and visit http://localhost:8080
+  - Server features:
+    - Automatically opens browser when started
+    - Hot reload - automatically refreshes browser when files change
+    - Monitors HTML, CSS, JS, and MD files for changes
 - **Deploy**: Push to GitHub Pages (automatic via this repository)
 - **Linting**: Use ESLint with `npx eslint index.html`
 

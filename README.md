@@ -25,7 +25,8 @@ https://tetsuya81.github.io/markdown-to-html/index.html
 
 ## Development
 
-- **Run locally**: Open index.html in any browser
+- **Run locally (browser only)**: Open index.html in any browser
+- **Run with Go server**: Run `go run server.go` and visit http://localhost:8080
 - **Deploy**: Push to GitHub Pages (automatic via this repository)
 - **Linting**: Use ESLint with `npx eslint index.html`
 

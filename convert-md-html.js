@@ -44,23 +44,27 @@ function initMarkdownConverter() {
         mdFile.click();
     });
     
-    // Handle file selection
-    mdFile.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
+    // Handle Markdown file
+    function handleFile(file) {
         const reader = new FileReader();
         reader.onload = function(e) {
             const content = e.target.result;
             renderMarkdown(content);
             mdEditor.value = content;
             editBtn.classList.remove('hidden');
-            
+
             // Close menu after file upload
             menuButton.classList.remove('active');
             menuPanel.classList.remove('active');
         };
         reader.readAsText(file);
+    }
+
+    // Handle file selection
+    mdFile.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        handleFile(file);
     });
     
     // Open modal editor
@@ -113,9 +117,7 @@ function initMarkdownConverter() {
         if (files.length > 0) {
             const file = files[0];
             if (file.name.endsWith('.md') || file.name.endsWith('.markdown') || file.name.endsWith('.txt')) {
-                mdFile.files = files;
-                const event = new Event('change');
-                mdFile.dispatchEvent(event);
+                handleFile(file);
             }
         }
     });

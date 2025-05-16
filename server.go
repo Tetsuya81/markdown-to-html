@@ -215,12 +215,10 @@ type responseRecorder struct {
 
 func (rr *responseRecorder) WriteHeader(statusCode int) {
 	rr.statusCode = statusCode
-	rr.ResponseWriter.WriteHeader(statusCode)
 }
 
 func (rr *responseRecorder) Write(b []byte) (int, error) {
-	rr.body.Write(b)
-	return rr.ResponseWriter.Write(b)
+	return rr.body.Write(b)
 }
 
 func openBrowser(url string) {
